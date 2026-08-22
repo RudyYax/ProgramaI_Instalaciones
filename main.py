@@ -61,8 +61,8 @@ def abrir_panel_principal(nombre):
 
     boton_prueba = tk.Button(
         ventana,
-        text="Boton 2",
-        command=mostrar_bienvenida,
+        text="Caida de tensión",
+        command=lambda :ventana_caida_tension(ventana),
         bg="#2196F3",
         fg="white",
         font=("Arial", 14),
@@ -162,6 +162,95 @@ def ventana_ingreso_nombre():
     entrada_nombre.focus()
 
     ventana_inicio.mainloop()
+
+def ventana_caida_tension(padre):
+    ventana = tk.Toplevel(padre)
+    ventana.title("Caída de Tensión")
+    ventana.geometry("450x400")
+    configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
+
+    tk.Label(
+        ventana,
+        text="Calcular Caída de Tensión",
+        font=("Arial", 16, "bold")
+    ).grid(row=0, column=0, columnspan=2, pady=15)
+
+    tk.Label(
+        ventana,
+        text="ΔV = (2 x L x I x ρ) / S",
+        font=("Arial", 10),
+        fg="gray"
+    ).grid(row=1, column=0, columnspan=2, pady=(0, 15))
+
+
+    campos = {
+        "longitud": "Longitud (m):",
+        "corriente": "Corriente I (A):",
+        "seccion": "Sección S (mm²):",
+        "resistividad":"Resistividad ρ (Ω·mm²/m):"
+    }
+
+    entradas = {}
+    for i, (clave, etiqueta) in enumerate(campos.items()):
+        tk.Label(ventana, text=etiqueta, font=("Arial", 12)).grid(
+            row=i + 2, column=0, padx=10, pady=8, sticky="e"
+        )
+        entrada = tk.Entry(ventana, font=("Arial", 12), width=18)
+        entrada.grid(row=i + 2, column=1, padx=10, pady=8, sticky="w")
+        entradas[clave] = entrada
+
+    etiqueta_resultado = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
+    etiqueta_resultado.grid(row=6, column=0, columnspan=2, pady=10)
+
+    def calcular():
+        valores = {}
+        for clave in campos:
+            texto = entradas[clave].get().strip()
+            if texto == "":
+                messagebox.showwarning("Validación", "Debes llenar todos los campos")
+                return
+            try:
+                valores[clave] = float(texto)
+            except ValueError:
+                messagebox.showwarning("Validación", f"El valor de {campos[clave]} no es válido")
+                return
+
+        if valores["seccion"] == 0:
+            messagebox.showerror("Error", "La sección no puede ser cero")
+            return
+
+        caida = (2 * valores["longitud"] * valores["corriente"] * valores["resistividad"]) / valores["seccion"]
+
+        etiqueta_resultado.config(
+            text=f"Caída de tensión ≈ {caida:.4f} V"
+        )
+
+
+
+    def limpiar():
+        for entrada in entradas.values():
+            entrada.delete(0, tk.END)
+        etiqueta_resultado.config(text="")
+        entradas["longitud"].focus()
+
+    marco_botones = tk.Frame(ventana)
+    marco_botones.grid(row=7, column=0, columnspan=2, pady=15)
+
+    boton_calcular = tk.Button(
+        marco_botones, text="Calcular", command=calcular,
+        bg="#4CAF50", fg="white", font=("Arial", 12), width=12
+    )
+    boton_calcular.grid(row=0, column=0, padx=6)
+    configurar_teclado_rapido(boton_calcular, funcion_enter=calcular)
+
+    boton_limpiar = tk.Button(
+        marco_botones, text="Limpiar", command=limpiar,
+        bg="#FF9800", fg="white", font=("Arial", 12), width=12
+    )
+    boton_limpiar.grid(row=0, column=1, padx=6)
+
+    entradas["longitud"].focus()
+
 
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
