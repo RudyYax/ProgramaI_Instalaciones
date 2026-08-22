@@ -224,6 +224,7 @@ def ventana_caida_tension(padre):
             text=f"Caída de tensión ≈ {caida:.4f} V"
         )
 
+
     def limpiar():
         for entrada in entradas.values():
             entrada.delete(0, tk.END)
