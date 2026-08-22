@@ -56,20 +56,35 @@ def abrir_panel_principal(nombre):
     )
     lienzo.create_window(ancho // 2, 160, window=boton_calculadora)
 
+    def mostrar_bienvenida():
+        messagebox.showinfo("Bienvenida", f"¡Hola, {nombre}! Bienvenido al sistema.")
+
+    boton_prueba = tk.Button(
+        ventana,
+        text="Prueba",
+        command=mostrar_bienvenida,
+        bg="#2196F3",
+        fg="white",
+        font=("Arial", 14),
+        width=25
+    )
+    lienzo.create_window(ancho // 2, 200, window=boton_prueba)
+
     boton_salir = tk.Button(
         ventana,
         text="Cerrar Sesión",
         command=ventana.destroy,
         bg="red",
         fg="white",
-        font=("Arial", 2),
+        font=("Arial", 10),
         width=25
     )
-    lienzo.create_window(ancho // 2, 200, window=boton_salir)
+    lienzo.create_window(ancho // 2, 240, window=boton_salir)
 
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     ventana.mainloop()
+
 
 def ventana_ingreso_nombre():
     global ventana_inicio, entrada_nombre
