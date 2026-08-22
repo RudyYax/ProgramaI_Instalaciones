@@ -57,11 +57,11 @@ def abrir_panel_principal(nombre):
     lienzo.create_window(ancho // 2, 160, window=boton_calculadora)
 
     def mostrar_bienvenida():
-        messagebox.showinfo("Bienvenida", f"¡Hola, {nombre}! Bienvenido al sistema.")
+        messagebox.showinfo("Bienvenid@", f"¡Hola, {nombre}! Bienvenido al sistema.")
 
     boton_prueba = tk.Button(
         ventana,
-        text="Prueba",
+        text="Boton 2",
         command=mostrar_bienvenida,
         bg="#2196F3",
         fg="white",
