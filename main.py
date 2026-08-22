@@ -225,6 +225,7 @@ def ventana_caida_tension(padre):
         )
 
 
+
     def limpiar():
         for entrada in entradas.values():
             entrada.delete(0, tk.END)
