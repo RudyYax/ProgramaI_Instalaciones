@@ -62,7 +62,7 @@ def abrir_panel_principal(nombre):
         command=ventana.destroy,
         bg="red",
         fg="white",
-        font=("Arial", 11),
+        font=("Arial", 12),
         width=25
     )
     lienzo.create_window(ancho // 2, 200, window=boton_salir)
