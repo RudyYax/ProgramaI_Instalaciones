@@ -182,6 +182,7 @@ def ventana_caida_tension(padre):
         fg="gray"
     ).grid(row=1, column=0, columnspan=2, pady=(0, 15))
 
+
     campos = {
         "longitud": "Longitud (m):",
         "corriente": "Corriente I (A):",
