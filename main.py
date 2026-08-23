@@ -166,7 +166,7 @@ def ventana_ingreso_nombre():
 def ventana_caida_tension(padre):
     ventana = tk.Toplevel(padre)
     ventana.title("Caída de Tensión")
-    ventana.geometry("450x450")
+    ventana.geometry("400x450")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
