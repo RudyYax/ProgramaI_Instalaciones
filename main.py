@@ -166,7 +166,7 @@ def ventana_ingreso_nombre():
 def ventana_caida_tension(padre):
     ventana = tk.Toplevel(padre)
     ventana.title("Caída de Tensión")
-    ventana.geometry("450x400")
+    ventana.geometry("450x450")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
@@ -201,6 +201,27 @@ def ventana_caida_tension(padre):
 
     etiqueta_resultado = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
     etiqueta_resultado.grid(row=6, column=0, columnspan=2, pady=10)
+    resultado_valores = {}
+    etiqueta_pregunta = tk.Label(
+        ventana,
+        text="¿Deseas calcular el porcentaje?",
+        font=("Arial", 11, "bold")
+    )
+
+    marco_si_no = tk.Frame(ventana)
+
+    boton_si = tk.Button(
+        marco_si_no, text="Sí", command=lambda: abrir_ventana_porcentaje(ventana, resultado_valores),
+        bg="#4CAF50", fg="white", font=("Arial", 11), width=10
+    )
+    boton_si.grid(row=0, column=0, padx=6)
+
+    boton_no = tk.Button(
+        marco_si_no, text="No", command=lambda: (etiqueta_pregunta.grid_remove(), marco_si_no.grid_remove()),
+        bg="#F44336", fg="white", font=("Arial", 11), width=10
+    )
+    boton_no.grid(row=0, column=1, padx=6)
+
 
     def calcular():
         valores = {}
@@ -221,20 +242,26 @@ def ventana_caida_tension(padre):
 
         caida = (2 * valores["longitud"] * valores["corriente"] * valores["resistividad"]) / valores["seccion"]
 
+        resultado_valores["caida"] = caida
+
         etiqueta_resultado.config(
             text=f"Caída de tensión ≈ {caida:.4f} V"
         )
 
+        etiqueta_pregunta.grid(row=7, column=0, columnspan=2, pady=(5, 0))
+        marco_si_no.grid(row=8, column=0, columnspan=2, pady=(5, 10))
 
 
     def limpiar():
         for entrada in entradas.values():
             entrada.delete(0, tk.END)
         etiqueta_resultado.config(text="")
+        etiqueta_pregunta.grid_remove()
+        marco_si_no.grid_remove()
         entradas["longitud"].focus()
 
     marco_botones = tk.Frame(ventana)
-    marco_botones.grid(row=7, column=0, columnspan=2, pady=15)
+    marco_botones.grid(row=9, column=0, columnspan=2, pady=15)
 
     boton_calcular = tk.Button(
         marco_botones, text="Calcular", command=calcular,
@@ -251,6 +278,52 @@ def ventana_caida_tension(padre):
 
     entradas["longitud"].focus()
 
+def abrir_ventana_porcentaje(padre, resultado_valores):
+    if "caida" not in resultado_valores:
+        messagebox.showwarning("Validación", "Primero calcula la caída de tensión")
+        return
+
+    ventana = tk.Toplevel(padre)
+    ventana.title("Calcular Porcentaje")
+    ventana.geometry("350x220")
+    configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
+
+    tk.Label(
+        ventana, text="Tensión Nominal (V):", font=("Arial", 12)
+    ).pack(pady=(20, 5))
+
+    entrada_tension = tk.Entry(ventana, font=("Arial", 12), width=18)
+    entrada_tension.pack()
+    entrada_tension.focus()
+
+    etiqueta_resultado_porcentaje = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
+    etiqueta_resultado_porcentaje.pack(pady=15)
+
+    def calcular():
+        texto_tension = entrada_tension.get().strip()
+        if texto_tension == "":
+            messagebox.showwarning("Validación", "Ingresa la tensión nominal")
+            return
+        try:
+            tension_nominal = float(texto_tension)
+            if tension_nominal == 0:
+                raise ZeroDivisionError
+        except ValueError:
+            messagebox.showwarning("Validación", "El valor de tensión nominal no es válido")
+            return
+        except ZeroDivisionError:
+            messagebox.showerror("Error", "La tensión nominal no puede ser cero")
+            return
+
+        porcentaje = (resultado_valores["caida"] / tension_nominal) * 100
+        etiqueta_resultado_porcentaje.config(text=f"Porcentaje de caída ≈ {porcentaje:.2f} %")
+
+    boton_calcular = tk.Button(
+        ventana, text="Calcular", command=calcular,
+        bg="#4CAF50", fg="white", font=("Arial", 12), width=14
+    )
+    boton_calcular.pack(pady=5)
+    configurar_teclado_rapido(entrada_tension, funcion_enter=calcular)
 
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
