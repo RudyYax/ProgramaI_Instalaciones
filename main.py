@@ -223,6 +223,7 @@ def ventana_caida_tension(padre):
     boton_no.grid(row=0, column=1, padx=6)
 
 
+
     def calcular():
         valores = {}
         for clave in campos:
@@ -276,6 +277,12 @@ def ventana_caida_tension(padre):
     )
     boton_limpiar.grid(row=0, column=1, padx=6)
 
+    boton_cerrar = tk.Button(
+        marco_botones, text="Cerrar", command=ventana.destroy,
+        bg="#F44336", fg="white", font=("Arial", 12), width=12
+    )
+    boton_cerrar.grid(row=0, column=2, padx=6)
+
     entradas["longitud"].focus()
 
 def abrir_ventana_porcentaje(padre, resultado_valores):
@@ -324,6 +331,11 @@ def abrir_ventana_porcentaje(padre, resultado_valores):
     )
     boton_calcular.pack(pady=5)
     configurar_teclado_rapido(entrada_tension, funcion_enter=calcular)
+    boton_cerrar = tk.Button(
+        ventana, text="Cerrar", command=ventana.destroy,
+        bg="#F44336", fg="white", font=("Arial", 12), width=14
+    )
+    boton_cerrar.pack(pady=5)
 
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
