@@ -184,23 +184,46 @@ def ventana_caida_tension(padre):
 
 
     campos = {
+
         "longitud": "Longitud (m):",
         "corriente": "Corriente I (A):",
         "seccion": "Sección S (mm²):",
         "resistividad":"Resistividad ρ (Ω·mm²/m):"
     }
+    tipo_circuito = tk.StringVar(value="derivado")
+
+    tk.Label(
+        ventana,
+        text="Tipo de circuito:",
+        font=("Arial", 11, "bold")
+    ).grid(row=2, column=0, columnspan=2, pady=(0, 5))
+
+    marco_tipo = tk.Frame(ventana)
+    marco_tipo.grid(row=3, column=0, columnspan=2, pady=(0, 15))
+
+    tk.Radiobutton(
+        marco_tipo, text="Circuito derivado (3%)",
+        variable=tipo_circuito, value="derivado",
+        font=("Arial", 10)
+    ).grid(row=0, column=0, padx=8)
+
+    tk.Radiobutton(
+        marco_tipo, text="Tablero principal a carga (5%)",
+        variable=tipo_circuito, value="principal",
+        font=("Arial", 10)
+    ).grid(row=0, column=1, padx=8)
 
     entradas = {}
     for i, (clave, etiqueta) in enumerate(campos.items()):
         tk.Label(ventana, text=etiqueta, font=("Arial", 12)).grid(
-            row=i + 2, column=0, padx=10, pady=8, sticky="e"
+            row=i + 4, column=0, padx=10, pady=8, sticky="e"
         )
         entrada = tk.Entry(ventana, font=("Arial", 12), width=18)
-        entrada.grid(row=i + 2, column=1, padx=10, pady=8, sticky="w")
+        entrada.grid(row=i + 4, column=1, padx=10, pady=8, sticky="w")
         entradas[clave] = entrada
 
     etiqueta_resultado = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
-    etiqueta_resultado.grid(row=6, column=0, columnspan=2, pady=10)
+    etiqueta_resultado.grid(row=8, column=0, columnspan=2, pady=10)
     resultado_valores = {}
     etiqueta_pregunta = tk.Label(
         ventana,
@@ -211,7 +234,7 @@ def ventana_caida_tension(padre):
     marco_si_no = tk.Frame(ventana)
 
     boton_si = tk.Button(
-        marco_si_no, text="Sí", command=lambda: abrir_ventana_porcentaje(ventana, resultado_valores),
+        marco_si_no, text="Sí", command=lambda: abrir_ventana_porcentaje(ventana, resultado_valores, tipo_circuito.get()),
         bg="#4CAF50", fg="white", font=("Arial", 11), width=10
     )
     boton_si.grid(row=0, column=0, padx=6)
@@ -249,8 +272,8 @@ def ventana_caida_tension(padre):
             text=f"Caída de tensión ≈ {caida:.4f} V"
         )
 
-        etiqueta_pregunta.grid(row=7, column=0, columnspan=2, pady=(5, 0))
-        marco_si_no.grid(row=8, column=0, columnspan=2, pady=(5, 10))
+        etiqueta_pregunta.grid(row=9, column=0, columnspan=2, pady=(5, 0))
+        marco_si_no.grid(row =10, column=0, columnspan=2, pady=(5, 10))
 
 
     def limpiar():
@@ -262,7 +285,7 @@ def ventana_caida_tension(padre):
         entradas["longitud"].focus()
 
     marco_botones = tk.Frame(ventana)
-    marco_botones.grid(row=9, column=0, columnspan=2, pady=15)
+    marco_botones.grid(row=11, column=0, columnspan=2, pady=15)
 
     boton_calcular = tk.Button(
         marco_botones, text="Calcular", command=calcular,
@@ -285,19 +308,28 @@ def ventana_caida_tension(padre):
 
     entradas["longitud"].focus()
 
-def abrir_ventana_porcentaje(padre, resultado_valores):
+def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
     if "caida" not in resultado_valores:
         messagebox.showwarning("Validación", "Primero calcula la caída de tensión")
         return
 
+    limites = {"derivado": 3, "principal": 5}
+    limite = limites[tipo_circuito]
+    etiqueta_tipo = "Circuito derivado" if tipo_circuito == "derivado" else "Tablero principal a carga"
+
     ventana = tk.Toplevel(padre)
     ventana.title("Calcular Porcentaje")
-    ventana.geometry("350x220")
+    ventana.geometry("350x260")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
+        ventana, text=f"{etiqueta_tipo} (límite: {limite}%)",
+        font=("Arial", 10), fg="gray"
+    ).pack(pady=(15, 5))
+
+    tk.Label(
         ventana, text="Tensión Nominal (V):", font=("Arial", 12)
-    ).pack(pady=(20, 5))
+    ).pack(pady=(10, 5))
 
     entrada_tension = tk.Entry(ventana, font=("Arial", 12), width=18)
     entrada_tension.pack()
@@ -323,7 +355,11 @@ def abrir_ventana_porcentaje(padre, resultado_valores):
             return
 
         porcentaje = (resultado_valores["caida"] / tension_nominal) * 100
-        etiqueta_resultado_porcentaje.config(text=f"Porcentaje de caída ≈ {porcentaje:.2f} %")
+        cumple = "✅ Cumple con el porcentaje permitido" if porcentaje <= limite else "⚠️ No cumple con el porcentaje permitido"
+
+        etiqueta_resultado_porcentaje.config(
+            text=f"Porcentaje de caída ≈ {porcentaje:.2f} %\n{cumple}"
+        )
 
     boton_calcular = tk.Button(
         ventana, text="Calcular", command=calcular,
