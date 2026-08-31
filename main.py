@@ -14,6 +14,7 @@ AREA_CONDUCTOR_MM2 = {
     2: 87.8,
 }
 
+
 # --- Tabla 4.5: diámetro nominal de tubería conduit PVC y su área interna en mm² ---
 TUBERIA_CONDUIT = [
     ("1/2", 260),
