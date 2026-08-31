@@ -3,6 +3,49 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
+# --- Tabla 4.7: área de un conductor aislado TW/THW, en mm² (dato por 1 conductor) ---
+AREA_CONDUCTOR_MM2 = {
+    14: 9.24,
+    12: 12.0,
+    10: 16.1,
+    8: 29.2,
+    6: 48.0,
+    4: 64.2,
+    2: 87.8,
+}
+
+# --- Tabla 4.5: diámetro nominal de tubería conduit PVC y su área interna en mm² ---
+TUBERIA_CONDUIT = [
+    ("1/2", 260),
+    ("3/4", 438),
+    ("1", 723),
+    ("1 1/4", 1170),
+    ("1 1/2", 1534),
+    ("2", 2397),
+    ("3", 5350),
+]
+# --- Tabla 2 y Tabla 1: área de la sección transversal de cobre por calibre AWG, en mm² ---
+# (esta es la "S" que usa la fórmula de caída de tensión). Ordenada de menor a mayor área.
+CALIBRE_AWG_AREA_MM2 = [
+    ("14", 2.082),
+    ("12", 3.307),
+    ("10", 5.260),
+    ("8", 8.367),
+    ("6", 13.300),
+    ("4", 21.150),
+    ("2", 33.620),
+    ("1/0", 53.480),
+    ("2/0", 67.430),
+    ("3/0", 85.010),
+    ("4/0", 107.200),
+]
+
+
+
+
+
+
+
 def configurar_teclado_rapido(widget, funcion_enter=None, funcion_escape=None):
     if funcion_enter:
         widget.bind("<Return>", lambda e: funcion_enter())
@@ -79,6 +122,16 @@ def abrir_panel_principal(nombre):
         font=("Arial", 12),
         width=25
     )
+    boton_factor_relleno = tk.Button(
+        ventana,
+        text="Factor de Relleno (Tubería)",
+        command=lambda: ventana_factor_relleno(ventana),
+        bg="#2196F3",
+        fg="white",
+        font=("Arial", 14),
+        width=25
+    )
+    lienzo.create_window(ancho // 2, 280, window=boton_factor_relleno)
     lienzo.create_window(ancho // 2, 240, window=boton_salir)
 
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
@@ -372,6 +425,155 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
         bg="#F44336", fg="white", font=("Arial", 12), width=14
     )
     boton_cerrar.pack(pady=5)
+
+def ventana_factor_relleno(padre):
+    ventana = tk.Toplevel(padre)
+    ventana.title("Factor de Relleno - Tubería Conduit")
+    ventana.geometry("480x560")
+    configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
+
+    tk.Label(
+        ventana,
+        text="Factor de Relleno de Tubería Conduit",
+        font=("Arial", 16, "bold")
+    ).grid(row=0, column=0, columnspan=2, pady=15)
+
+    tk.Label(
+        ventana,
+        text="Fr = (Área conductores / Área tubo) x 100",
+        font=("Arial", 10),
+        fg="gray"
+    ).grid(row=1, column=0, columnspan=2, pady=(0, 10))
+
+    calibres_validos = sorted(AREA_CONDUCTOR_MM2.keys(), reverse=True)
+    tk.Label(
+        ventana,
+        text=f"Calibres disponibles (AWG): {', '.join(str(c) for c in calibres_validos)}",
+        font=("Arial", 9),
+        fg="gray"
+    ).grid(row=2, column=0, columnspan=2, pady=(0, 15))
+
+    tk.Label(ventana, text="Calibre AWG", font=("Arial", 11, "bold")).grid(row=3, column=0, padx=10)
+    tk.Label(ventana, text="Cantidad", font=("Arial", 11, "bold")).grid(row=3, column=1, padx=10)
+
+    filas = []
+    for i in range(4):
+        entrada_calibre = tk.Entry(ventana, font=("Arial", 12), width=12)
+        entrada_calibre.grid(row=i + 4, column=0, padx=10, pady=5)
+        entrada_cantidad = tk.Entry(ventana, font=("Arial", 12), width=12)
+        entrada_cantidad.grid(row=i + 4, column=1, padx=10, pady=5)
+        filas.append((entrada_calibre, entrada_cantidad))
+
+    etiqueta_resultado = tk.Label(
+        ventana, text="", font=("Arial", 11), fg="#2E7D32", justify="left"
+    )
+    etiqueta_resultado.grid(row=9, column=0, columnspan=2, pady=15)
+
+    def calcular():
+        area_total = 0.0
+        num_total = 0
+
+        for entrada_calibre, entrada_cantidad in filas:
+            texto_cal = entrada_calibre.get().strip()
+            texto_cant = entrada_cantidad.get().strip()
+
+            if texto_cal == "" and texto_cant == "":
+                continue
+            if texto_cal == "" or texto_cant == "":
+                messagebox.showwarning("Validación", "Completa calibre y cantidad en cada fila que uses")
+                return
+            try:
+                calibre = int(texto_cal)
+                cantidad = int(texto_cant)
+            except ValueError:
+                messagebox.showwarning("Validación", "Calibre y cantidad deben ser números enteros")
+                return
+
+            if calibre not in AREA_CONDUCTOR_MM2:
+                messagebox.showwarning(
+                    "Validación",
+                    f"El calibre {calibre} no está en la tabla.\nUsa uno de: {calibres_validos}"
+                )
+                return
+            if cantidad <= 0:
+                messagebox.showwarning("Validación", "La cantidad debe ser mayor a cero")
+                return
+
+            area_total += AREA_CONDUCTOR_MM2[calibre] * cantidad
+            num_total += cantidad
+
+        if num_total == 0:
+            messagebox.showwarning("Validación", "Ingresa al menos un conductor")
+            return
+
+        if num_total == 1:
+            fr_limite = 0.55
+        elif num_total == 2:
+            fr_limite = 0.30
+        else:
+            fr_limite = 0.40
+
+        area_minima_tubo = area_total / fr_limite
+
+        diametro_elegido = None
+        for diametro, area_interna in TUBERIA_CONDUIT:
+            if area_interna >= area_minima_tubo:
+                diametro_elegido = (diametro, area_interna)
+                break
+
+        texto = (
+            f"Número total de conductores: {num_total}\n"
+            f"Área total de conductores (Ac): {area_total:.2f} mm²\n"
+            f"Factor de relleno permitido: {fr_limite * 100:.0f} %\n"
+            f"Área mínima requerida del tubo: {area_minima_tubo:.2f} mm²\n"
+        )
+
+        if diametro_elegido:
+            texto += (
+                f"✅ Diámetro de tubería recomendado: {diametro_elegido[0]}\" "
+                f"(área interna {diametro_elegido[1]} mm²)"
+            )
+        else:
+            texto += "⚠ Ningún diámetro de la tabla alcanza; se necesita tubería mayor a 3\""
+
+        etiqueta_resultado.config(text=texto)
+
+    def limpiar():
+        for entrada_calibre, entrada_cantidad in filas:
+            entrada_calibre.delete(0, tk.END)
+            entrada_cantidad.delete(0, tk.END)
+        etiqueta_resultado.config(text="")
+        filas[0][0].focus()
+
+    marco_botones = tk.Frame(ventana)
+    marco_botones.grid(row=10, column=0, columnspan=2, pady=10)
+
+    boton_calcular = tk.Button(
+        marco_botones, text="Calcular", command=calcular,
+        bg="#4CAF50", fg="white", font=("Arial", 12), width=12
+    )
+    boton_calcular.grid(row=0, column=0, padx=6)
+    configurar_teclado_rapido(boton_calcular, funcion_enter=calcular)
+
+    boton_limpiar = tk.Button(
+        marco_botones, text="Limpiar", command=limpiar,
+        bg="#FF9800", fg="white", font=("Arial", 12), width=12
+    )
+    boton_limpiar.grid(row=0, column=1, padx=6)
+
+    boton_cerrar = tk.Button(
+        marco_botones, text="Cerrar", command=ventana.destroy,
+        bg="#F44336", fg="white", font=("Arial", 12), width=12
+    )
+    boton_cerrar.grid(row=0, column=2, padx=6)
+
+    filas[0][0].focus()
+
+
+
+
+
+
 
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
