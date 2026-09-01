@@ -317,8 +317,8 @@ def ventana_caida_tension(padre):
         if valores["seccion"] == 0:
             messagebox.showerror("Error", "La sección no puede ser cero")
             return
+        caida = ((2*valores["longitud"])*valores["corriente"] * valores["resistividad"])/ valores["seccion"]
 
-        caida = (2 * valores["longitud"] * valores["corriente"] * valores["resistividad"]) / valores["seccion"]
 
         resultado_valores["caida"] = caida
 
