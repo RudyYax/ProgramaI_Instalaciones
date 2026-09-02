@@ -63,6 +63,15 @@ def crear_fondo(ventana, ancho, alto):
     lienzo.pack(fill="both", expand=True)
     lienzo.create_image(0, 0, image=fondo_tk, anchor="nw")
     lienzo.imagen_fondo = fondo_tk
+
+    ruta_logo = os.path.join(ruta_base, "Logo.png")
+    if os.path.exists(ruta_logo):
+        logo = Image.open(ruta_logo)
+        logo = logo.resize((300,300), Image.Resampling.LANCZOS)
+        logo_tk = ImageTk.PhotoImage(logo)
+
+        lienzo.create_image(ancho // 2, 160, image=logo_tk, anchor="center")
+        lienzo.imagen_logo = logo_tk
     return lienzo
 
 def abrir_panel_principal(nombre):
@@ -78,9 +87,9 @@ def abrir_panel_principal(nombre):
         return
 
     lienzo.create_text(
-        ancho // 2, 420,
-        text=f"Bienvenido, {nombre}",
-        font=("Arial", 24, "bold"),
+        ancho // 2, 320,
+        text=f"BIENVENIDO, {nombre}",
+        font=("Arial Black", 24, "bold"),
         fill="white"
     )
     boton_calculadora = tk.Button(
@@ -89,10 +98,10 @@ def abrir_panel_principal(nombre):
         command=lambda: ventana_menu_calculadora(ventana),
         bg="#2196F3",
         fg="white",
-        font=("Arial", 14),
+        font=("Impact", 16),
         width=25
     )
-    lienzo.create_window(ancho // 2, 460, window=boton_calculadora)
+    lienzo.create_window(ancho // 2, 380, window=boton_calculadora)
 
     def mostrar_bienvenida():
         messagebox.showinfo("Bienvenid@", f"¡Hola, {nombre}! Bienvenido al sistema.")
@@ -103,10 +112,10 @@ def abrir_panel_principal(nombre):
         command=lambda :ventana_caida_tension(ventana),
         bg="#2196F3",
         fg="white",
-        font=("Arial", 14),
+        font=("Impact", 16),
         width=25
     )
-    lienzo.create_window(ancho // 2, 500, window=boton_prueba)
+    lienzo.create_window(ancho // 2, 450, window=boton_prueba)
 
 
     boton_factor_relleno = tk.Button(
@@ -115,7 +124,7 @@ def abrir_panel_principal(nombre):
         command=lambda: preguntar_cantidad_relleno(ventana),
         bg="#2196F3",
         fg="white",
-        font=("Arial", 14),
+        font=("Impact", 16),
         width=25
     )
     boton_salir = tk.Button(
@@ -124,17 +133,16 @@ def abrir_panel_principal(nombre):
         command=ventana.destroy,
         bg="red",
         fg="white",
-        font=("Arial", 12),
+        font=("Times New Roman", 14),
         width=25
     )
 
-    lienzo.create_window(ancho // 2, 540, window=boton_factor_relleno)
+    lienzo.create_window(ancho // 2, 520, window=boton_factor_relleno)
     lienzo.create_window(ancho // 2, 580, window=boton_salir)
 
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     ventana.mainloop()
-
 
 def ventana_ingreso_nombre():
     global ventana_inicio, entrada_nombre
@@ -254,7 +262,7 @@ def ventana_caida_tension(padre):
     ).grid(row=0, column=0, padx=8)
 
     tk.Radiobutton(
-        marco_tipo, text="Tablero principal a carga (5%)",
+        marco_tipo, text="Cicuito completo (5%)",
         variable=tipo_circuito, value="principal",
         font=("Arial", 10)
     ).grid(row=0, column=1, padx=8)
@@ -651,7 +659,6 @@ def ventana_factor_relleno(padre, cantidad_calibres):
     boton_cerrar.grid(row=0, column=2, padx=6)
 
     filas[0][0].focus()
-
 
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
