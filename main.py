@@ -1,9 +1,8 @@
 import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 
-# --- Tabla 4.7: área de un conductor aislado TW/THW, en mm² (dato por 1 conductor) ---
 AREA_CONDUCTOR_MM2 = {
     14: 9.24,
     12: 12.0,
@@ -14,8 +13,6 @@ AREA_CONDUCTOR_MM2 = {
     2: 87.8,
 }
 
-
-# --- Tabla 4.5: diámetro nominal de tubería conduit PVC y su área interna en mm² ---
 TUBERIA_CONDUIT = [
     ("1/2", 260),
     ("3/4", 438),
@@ -25,8 +22,6 @@ TUBERIA_CONDUIT = [
     ("2", 2397),
     ("3", 5350),
 ]
-# --- Tabla 2 y Tabla 1: área de la sección transversal de cobre por calibre AWG, en mm² ---
-# (esta es la "S" que usa la fórmula de caída de tensión). Ordenada de menor a mayor área.
 CALIBRE_AWG_AREA_MM2 = [
     ("14", 2.082),
     ("12", 3.307),
@@ -39,13 +34,12 @@ CALIBRE_AWG_AREA_MM2 = [
     ("2/0", 67.430),
     ("3/0", 85.010),
     ("4/0", 107.200),
+
 ]
-
-
-
-
-
-
+RESISTIVIDAD_MATERIAL = [
+    ("Cobre", 0.0175),
+    ("Aluminio", 0.0282),
+]
 
 def configurar_teclado_rapido(widget, funcion_enter=None, funcion_escape=None):
     if funcion_enter:
@@ -84,10 +78,10 @@ def abrir_panel_principal(nombre):
         return
 
     lienzo.create_text(
-        ancho // 2, 120,
+        ancho // 2, 420,
         text=f"Bienvenido, {nombre}",
         font=("Arial", 24, "bold"),
-        fill="black"
+        fill="white"
     )
     boton_calculadora = tk.Button(
         ventana,
@@ -98,7 +92,7 @@ def abrir_panel_principal(nombre):
         font=("Arial", 14),
         width=25
     )
-    lienzo.create_window(ancho // 2, 160, window=boton_calculadora)
+    lienzo.create_window(ancho // 2, 460, window=boton_calculadora)
 
     def mostrar_bienvenida():
         messagebox.showinfo("Bienvenid@", f"¡Hola, {nombre}! Bienvenido al sistema.")
@@ -112,17 +106,9 @@ def abrir_panel_principal(nombre):
         font=("Arial", 14),
         width=25
     )
-    lienzo.create_window(ancho // 2, 200, window=boton_prueba)
+    lienzo.create_window(ancho // 2, 500, window=boton_prueba)
 
-    boton_salir = tk.Button(
-        ventana,
-        text="Cerrar Sesión",
-        command=ventana.destroy,
-        bg="red",
-        fg="white",
-        font=("Arial", 12),
-        width=25
-    )
+
     boton_factor_relleno = tk.Button(
         ventana,
         text="Factor de Relleno (Tubería)",
@@ -132,8 +118,17 @@ def abrir_panel_principal(nombre):
         font=("Arial", 14),
         width=25
     )
-    lienzo.create_window(ancho // 2, 280, window=boton_factor_relleno)
-    lienzo.create_window(ancho // 2, 240, window=boton_salir)
+    boton_salir = tk.Button(
+        ventana,
+        text="Cerrar Sesión",
+        command=ventana.destroy,
+        bg="red",
+        fg="white",
+        font=("Arial", 12),
+        width=25
+    )
+    lienzo.create_window(ancho // 2, 540, window=boton_factor_relleno)
+    lienzo.create_window(ancho // 2, 580, window=boton_salir)
 
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
@@ -220,7 +215,7 @@ def ventana_ingreso_nombre():
 def ventana_caida_tension(padre):
     ventana = tk.Toplevel(padre)
     ventana.title("Caída de Tensión")
-    ventana.geometry("400x450")
+    ventana.geometry("450x550")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
@@ -229,12 +224,7 @@ def ventana_caida_tension(padre):
         font=("Arial", 16, "bold")
     ).grid(row=0, column=0, columnspan=2, pady=15)
 
-    tk.Label(
-        ventana,
-        text="ΔV = (2 x L x I x ρ) / S",
-        font=("Arial", 10),
-        fg="gray"
-    ).grid(row=1, column=0, columnspan=2, pady=(0, 15))
+    tk.Label(ventana, text="ΔV = (p * L * I) / A", font=("Arial", 10), fg="gray").grid(row=1, column=0, columnspan=2)
 
 
     campos = {
@@ -242,7 +232,8 @@ def ventana_caida_tension(padre):
         "longitud": "Longitud (m):",
         "corriente": "Corriente I (A):",
         "seccion": "Sección S (mm²):",
-        "resistividad":"Resistividad ρ (Ω·mm²/m):"
+        "resistividad": "Resistividad ρ (Ω·mm²/m):",
+
     }
     tipo_circuito = tk.StringVar(value="derivado")
 
@@ -267,15 +258,41 @@ def ventana_caida_tension(padre):
         font=("Arial", 10)
     ).grid(row=0, column=1, padx=8)
 
+    opciones_seccion = [f"{area} mm² ({awg} AWG)" for awg, area in CALIBRE_AWG_AREA_MM2]
+    variable_seccion = tk.StringVar(value=opciones_seccion[0])
+
+    opciones_resistividad = [f"{valor} Ω·mm²/m ({material})" for material, valor in RESISTIVIDAD_MATERIAL]
+    variable_resistividad = tk.StringVar(value=opciones_resistividad[0])
+
     entradas = {}
     for i, (clave, etiqueta) in enumerate(campos.items()):
         tk.Label(ventana, text=etiqueta, font=("Arial", 12)).grid(
             row=i + 4, column=0, padx=10, pady=8, sticky="e"
         )
-        entrada = tk.Entry(ventana, font=("Arial", 12), width=18)
+
+        if clave == "seccion":
+            entrada = ttk.Combobox(
+                ventana,
+                textvariable=variable_seccion,
+                values=opciones_seccion,
+                font=("Arial", 12),
+                width=18,
+                state="readonly"
+            )
+        elif clave == "resistividad":
+            entrada = ttk.Combobox(
+                ventana,
+                textvariable=variable_resistividad,
+                values=opciones_resistividad,
+                font=("Arial", 12),
+                width=18,
+                state="readonly"
+            )
+        else:
+            entrada = tk.Entry(ventana, font=("Arial", 12), width=18)
+
         entrada.grid(row=i + 4, column=1, padx=10, pady=8, sticky="w")
         entradas[clave] = entrada
-
     etiqueta_resultado = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
     etiqueta_resultado.grid(row=8, column=0, columnspan=2, pady=10)
     resultado_valores = {}
@@ -308,6 +325,20 @@ def ventana_caida_tension(padre):
             if texto == "":
                 messagebox.showwarning("Validación", "Debes llenar todos los campos")
                 return
+
+            if clave == "seccion":
+                valores[clave] = float(texto.split(" mm²")[0])
+                continue
+
+            if clave == "resistividad":
+                valores[clave] = float(texto.split(" Ω")[0])
+                continue
+
+            try:
+                valores[clave] = float(texto)
+            except ValueError:
+                messagebox.showwarning("Validación", f"El valor de {campos[clave]} no es válido")
+                return
             try:
                 valores[clave] = float(texto)
             except ValueError:
@@ -331,8 +362,13 @@ def ventana_caida_tension(padre):
 
 
     def limpiar():
-        for entrada in entradas.values():
-            entrada.delete(0, tk.END)
+        for clave, entrada in entradas.items():
+            if clave == "seccion":
+                variable_seccion.set(opciones_seccion[0])
+            elif clave == "resistividad":
+                variable_resistividad.set(opciones_resistividad[0])
+            else:
+                entrada.delete(0, tk.END)
         etiqueta_resultado.config(text="")
         etiqueta_pregunta.grid_remove()
         marco_si_no.grid_remove()
@@ -409,7 +445,7 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
             return
 
         porcentaje = (resultado_valores["caida"] / tension_nominal) * 100
-        cumple = "✅ Cumple con el porcentaje permitido" if porcentaje <= limite else "⚠️ No cumple con el porcentaje permitido"
+        cumple = " Cumple con el porcentaje permitido :)" if porcentaje <= limite else "No cumple con el porcentaje permitido :("
 
         etiqueta_resultado_porcentaje.config(
             text=f"Porcentaje de caída ≈ {porcentaje:.2f} %\n{cumple}"
@@ -531,7 +567,7 @@ def ventana_factor_relleno(padre):
 
         if diametro_elegido:
             texto += (
-                f"✅ Diámetro de tubería recomendado: {diametro_elegido[0]}\" "
+                f" Diámetro de tubería recomendado: {diametro_elegido[0]}\" "
                 f"(área interna {diametro_elegido[1]} mm²)"
             )
         else:
@@ -571,11 +607,6 @@ def ventana_factor_relleno(padre):
     filas[0][0].focus()
 
 
-
-
-
-
-
 def ventana_menu_calculadora(padre):
     ventana = tk.Toplevel(padre)
     ventana.title("Calculadora Eléctrica - Ley de Ohm")
@@ -613,7 +644,6 @@ def ventana_menu_calculadora(padre):
         ventana, text="Cerrar", font=("Arial", 12), width=22,
         command=ventana.destroy
     ).pack(pady=20)
-
 
 def ventana_calcular_valor(padre, objetivo):
 
