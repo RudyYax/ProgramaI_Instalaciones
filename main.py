@@ -112,7 +112,7 @@ def abrir_panel_principal(nombre):
     boton_factor_relleno = tk.Button(
         ventana,
         text="Factor de Relleno (Tubería)",
-        command=lambda: ventana_factor_relleno(ventana),
+        command=lambda: preguntar_cantidad_relleno(ventana),
         bg="#2196F3",
         fg="white",
         font=("Arial", 14),
@@ -463,11 +463,53 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
         bg="#F44336", fg="white", font=("Arial", 12), width=14
     )
     boton_cerrar.pack(pady=5)
+def preguntar_cantidad_relleno(padre):
+    ventana = tk.Toplevel(padre)
+    ventana.title("Factor de Relleno")
+    ventana.geometry("350x200")
+    configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
-def ventana_factor_relleno(padre):
+    tk.Label(
+        ventana, text="¿Cuántos calibres distintos vas a utilizar?",
+        font=("Arial", 12, "bold"), wraplength=300, justify="center"
+    ).pack(pady=20)
+
+    entrada_cantidad = tk.Entry(ventana, font=("Arial", 12), width=10, justify="center")
+    entrada_cantidad.pack(pady=10)
+    entrada_cantidad.focus()
+
+    def continuar():
+        texto = entrada_cantidad.get().strip()
+        if texto == "":
+            messagebox.showwarning("Validación", "Ingresa un número")
+            return
+        try:
+            cantidad = int(texto)
+        except ValueError:
+            messagebox.showwarning("Validación", "Debe ser un número entero")
+            return
+        if cantidad <= 0:
+            messagebox.showwarning("Validación", "La cantidad debe ser mayor a cero")
+            return
+        if cantidad > 12:
+            messagebox.showwarning("Validación", "Máximo 12 calibres distintos")
+            return
+        ventana.destroy()
+        ventana_factor_relleno(padre, cantidad)
+
+    boton_continuar = tk.Button(
+        ventana, text="Continuar", command=continuar,
+        bg="#4CAF50", fg="white", font=("Arial", 12), width=14
+    )
+    boton_continuar.pack(pady=10)
+    configurar_teclado_rapido(entrada_cantidad, funcion_enter=continuar)
+
+def ventana_factor_relleno(padre, cantidad_calibres):
     ventana = tk.Toplevel(padre)
     ventana.title("Factor de Relleno - Tubería Conduit")
-    ventana.geometry("480x560")
+
+    alto = min(360 + cantidad_calibres * 35, 750)
+    ventana.geometry(f"480x{alto}")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
@@ -494,18 +536,20 @@ def ventana_factor_relleno(padre):
     tk.Label(ventana, text="Calibre AWG", font=("Arial", 11, "bold")).grid(row=3, column=0, padx=10)
     tk.Label(ventana, text="Cantidad", font=("Arial", 11, "bold")).grid(row=3, column=1, padx=10)
 
+    fila_inicio = 4
     filas = []
-    for i in range(4):
+    for i in range(cantidad_calibres):
         entrada_calibre = tk.Entry(ventana, font=("Arial", 12), width=12)
-        entrada_calibre.grid(row=i + 4, column=0, padx=10, pady=5)
+        entrada_calibre.grid(row=fila_inicio + i, column=0, padx=10, pady=5)
         entrada_cantidad = tk.Entry(ventana, font=("Arial", 12), width=12)
-        entrada_cantidad.grid(row=i + 4, column=1, padx=10, pady=5)
+        entrada_cantidad.grid(row=fila_inicio + i, column=1, padx=10, pady=5)
         filas.append((entrada_calibre, entrada_cantidad))
 
+    fila_resultado = fila_inicio + cantidad_calibres
     etiqueta_resultado = tk.Label(
         ventana, text="", font=("Arial", 11), fg="#2E7D32", justify="left"
     )
-    etiqueta_resultado.grid(row=9, column=0, columnspan=2, pady=15)
+    etiqueta_resultado.grid(row=fila_resultado, column=0, columnspan=2, pady=15)
 
     def calcular():
         area_total = 0.0
@@ -583,8 +627,9 @@ def ventana_factor_relleno(padre):
         etiqueta_resultado.config(text="")
         filas[0][0].focus()
 
+    fila_botones = fila_resultado + 1
     marco_botones = tk.Frame(ventana)
-    marco_botones.grid(row=10, column=0, columnspan=2, pady=10)
+    marco_botones.grid(row=fila_botones, column=0, columnspan=2, pady=10)
 
     boton_calcular = tk.Button(
         marco_botones, text="Calcular", command=calcular,
