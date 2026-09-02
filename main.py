@@ -127,6 +127,7 @@ def abrir_panel_principal(nombre):
         font=("Arial", 12),
         width=25
     )
+
     lienzo.create_window(ancho // 2, 540, window=boton_factor_relleno)
     lienzo.create_window(ancho // 2, 580, window=boton_salir)
 
