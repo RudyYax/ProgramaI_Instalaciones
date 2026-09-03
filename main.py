@@ -86,47 +86,15 @@ def abrir_panel_principal(nombre):
     if lienzo is None:
         return
 
-    lienzo.create_text(
-        ancho // 2, 320,
-        text=f"BIENVENIDO, {nombre}",
-        font=("Arial Black", 24, "bold"),
-        fill="white"
-    )
-    boton_calculadora = tk.Button(
-        ventana,
-        text="Calculadora Eléctrica",
-        command=lambda: ventana_menu_calculadora(ventana),
-        bg="#2196F3",
-        fg="white",
-        font=("Impact", 16),
-        width=25
-    )
+    lienzo.create_text(ancho // 2, 320,text=f"BIENVENIDO, {nombre}", font=("Arial Black", 24, "bold"),fill="white")
+    boton_calculadora = tk.Button(ventana, text="Calculadora Eléctrica",command=lambda: ventana_menu_calculadora(ventana),bg="#2196F3",
+        fg="white",font=("Impact", 16),width=25)
     lienzo.create_window(ancho // 2, 380, window=boton_calculadora)
 
-    def mostrar_bienvenida():
-        messagebox.showinfo("Bienvenid@", f"¡Hola, {nombre}! Bienvenido al sistema.")
-
-    boton_prueba = tk.Button(
-        ventana,
-        text="Caida de tensión",
-        command=lambda :ventana_caida_tension(ventana),
-        bg="#2196F3",
-        fg="white",
-        font=("Impact", 16),
-        width=25
-    )
+    boton_prueba = tk.Button(ventana,text="Caida de tensión",command=lambda :ventana_caida_tension(ventana),bg="#2196F3",fg="white",font=("Impact", 16),width=25)
     lienzo.create_window(ancho // 2, 450, window=boton_prueba)
 
-
-    boton_factor_relleno = tk.Button(
-        ventana,
-        text="Factor de Relleno (Tubería)",
-        command=lambda: preguntar_cantidad_relleno(ventana),
-        bg="#2196F3",
-        fg="white",
-        font=("Impact", 16),
-        width=25
-    )
+    boton_factor_relleno = tk.Button(ventana,text="Factor de Relleno (Tubería)",command=lambda: preguntar_cantidad_relleno(ventana),bg="#2196F3",fg="white",font=("Impact", 16),width=25)
     boton_salir = tk.Button(
         ventana,
         text="Cerrar Sesión",
@@ -145,8 +113,6 @@ def abrir_panel_principal(nombre):
     ventana.mainloop()
 
 def ventana_ingreso_nombre():
-    global ventana_inicio, entrada_nombre
-
     ventana_inicio = tk.Tk()
     ventana_inicio.title("Bienvenid@")
     ventana_inicio.attributes('-fullscreen', True)
@@ -163,7 +129,6 @@ def ventana_ingreso_nombre():
         text="Ingresa tu nombre",
         font=("Arial", 20, "bold"),
         fill="white"
-             ""
     )
 
     lienzo.create_text(
@@ -348,12 +313,6 @@ def ventana_caida_tension(padre):
             except ValueError:
                 messagebox.showwarning("Validación", f"El valor de {campos[clave]} no es válido")
                 return
-            try:
-                valores[clave] = float(texto)
-            except ValueError:
-                messagebox.showwarning("Validación", f"El valor de {campos[clave]} no es válido")
-                return
-
         if valores["seccion"] == 0:
             messagebox.showerror("Error", "La sección no puede ser cero")
             return
