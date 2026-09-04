@@ -192,13 +192,14 @@ def ventana_caida_tension(padre):
     ventana.geometry("450x550")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
+
     tk.Label(
         ventana,
         text="Calcular Caída de Tensión",
         font=("Arial", 16, "bold")
     ).grid(row=0, column=0, columnspan=2, pady=15)
 
-    tk.Label(ventana, text="ΔV = (p * L * I) / A", font=("Arial", 10), fg="gray").grid(row=1, column=0, columnspan=2)
+    tk.Label(ventana, text="ΔV = (2*p * L * I) / A", font=("Arial", 10), fg="gray").grid(row=1, column=0, columnspan=2)
 
 
     campos = {
