@@ -192,6 +192,7 @@ def ventana_caida_tension(padre):
     ventana.geometry("450x550")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
+
     tk.Label(
         ventana,
         text="Calcular Caída de Tensión",
