@@ -160,6 +160,7 @@ def ventana_ingreso_nombre():
         width=20
     )
 
+
     lienzo.create_window(ancho // 2, alto // 2 + 20, window=boton_continuar)
 
     boton_salir = tk.Button(
@@ -321,6 +322,7 @@ def ventana_caida_tension(padre):
 
 
         resultado_valores["caida"] = caida
+        resultado_valores["seccion"] = valores["seccion"]
 
         etiqueta_resultado.config(
             text=f"Caída de tensión ≈ {caida:.4f} V"
@@ -378,7 +380,7 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
 
     ventana = tk.Toplevel(padre)
     ventana.title("Calcular Porcentaje")
-    ventana.geometry("350x260")
+    ventana.geometry("350x360")
     configurar_teclado_rapido(ventana, funcion_escape=ventana.destroy)
 
     tk.Label(
@@ -396,6 +398,9 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
 
     etiqueta_resultado_porcentaje = tk.Label(ventana, text="", font=("Arial", 13, "bold"), fg="#2E7D32")
     etiqueta_resultado_porcentaje.pack(pady=15)
+    etiqueta_recomendacion = tk.Label(ventana, text="", font=("Arial", 11), fg="#D84315", wraplength=300, justify="left")
+    etiqueta_recomendacion.pack(pady=5)
+
 
     def calcular():
         texto_tension = entrada_tension.get().strip()
@@ -415,6 +420,25 @@ def abrir_ventana_porcentaje(padre, resultado_valores, tipo_circuito):
 
         porcentaje = (resultado_valores["caida"] / tension_nominal) * 100
         cumple = " Cumple con el porcentaje permitido :)" if porcentaje <= limite else "No cumple con el porcentaje permitido :("
+        etiqueta_recomendacion.config(text="")
+        if porcentaje > limite and "seccion" in resultado_valores:
+            area_actual = resultado_valores["seccion"]
+            area_necesaria = area_actual * (porcentaje / limite)
+
+            calibre_recomendado = None
+            for awg, area in CALIBRE_AWG_AREA_MM2:
+                if area >= area_necesaria:
+                    calibre_recomendado = (awg, area)
+                    break
+
+            if calibre_recomendado:
+                etiqueta_recomendacion.config(
+                    text=f"Te recomiendo utilizar este tipo de calibre: {calibre_recomendado[0]} AWG)"
+                )
+            else:
+                etiqueta_recomendacion.config(
+                    text="Ningún calibre de la tabla es suficiente, considera otra opción (mayor sección o menor distancia)."
+                )
 
         etiqueta_resultado_porcentaje.config(
             text=f"Porcentaje de caída ≈ {porcentaje:.2f} %\n{cumple}"
