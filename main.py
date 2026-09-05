@@ -608,7 +608,7 @@ def ventana_factor_relleno(padre, cantidad_calibres):
                 f"(área interna {diametro_elegido[1]} mm²)"
             )
         else:
-            texto += "⚠ Ningún diámetro de la tabla alcanza; se necesita tubería mayor a 3\""
+            texto += "Ningún diámetro de la tabla alcanza; se necesita tubería mayor a 3\""
 
         etiqueta_resultado.config(text=texto)
 
